@@ -332,15 +332,11 @@ async function maybeRepairTelegramAllowFromUsernames(cfg: OpenClawConfig): Promi
     const inspected = inspectTelegramAccount({ cfg, accountId });
     return inspected.enabled && inspected.tokenStatus === "configured_unavailable";
   });
-  const tokens = Array.from(
-    new Set(
-      listTelegramAccountIds(resolvedConfig)
-        .map((accountId) => resolveTelegramAccount({ cfg: resolvedConfig, accountId }))
-        .map((account) => (account.tokenSource === "none" ? "" : account.token))
-        .map((token) => token.trim())
-        .filter(Boolean),
-    ),
-  );
+  const accountEntries = listTelegramAccountIds(resolvedConfig)
+    .map((accountId) => resolveTelegramAccount({ cfg: resolvedConfig, accountId }))
+    .filter((account) => account.tokenSource !== "none" && account.token.trim());
+  const tokens = Array.from(new Set(accountEntries.map((a) => a.token.trim())));
+  const apiRoot = accountEntries[0]?.config.apiRoot;
 
   if (tokens.length === 0) {
     return {
@@ -377,6 +373,7 @@ async function maybeRepairTelegramAllowFromUsernames(cfg: OpenClawConfig): Promi
           token,
           chatId: username,
           signal: controller.signal,
+          apiRoot,
         });
         if (id) {
           return id;

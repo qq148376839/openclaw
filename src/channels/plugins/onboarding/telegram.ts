@@ -104,7 +104,11 @@ async function promptTelegramAllowFrom(params: {
             return { input: entry, resolved: false, id: null };
           }
           const username = stripped.startsWith("@") ? stripped : `@${stripped}`;
-          const id = await fetchTelegramChatId({ token: tokenValue, chatId: username });
+          const id = await fetchTelegramChatId({
+            token: tokenValue,
+            chatId: username,
+            apiRoot: resolved.config.apiRoot,
+          });
           return { input: entry, resolved: Boolean(id), id };
         }),
       );
